@@ -1,4 +1,5 @@
 const fs = require('fs')
+const TourModel = require('../models/tourModel')
 
 // define the variable, otherwise when we are outside the scope of try/catch block (file read), we won't be able to access it.
 let tours;
