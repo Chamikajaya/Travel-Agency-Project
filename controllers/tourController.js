@@ -35,6 +35,8 @@ const getAllTours = async (req, res) => {
 
     try {
 
+        // ! Removing unwanted fields
+
         // our query obj may have extra fields such as 'limit', 'sort',...So we should remove them from the query obj as follows
 
         // cloning the query obj
@@ -72,7 +74,7 @@ const getAllTours = async (req, res) => {
         // * Your server-side code then needs to convert this into a format that MongoDB understands. The conversion process you implement in your code would translate price[gt] to price: {$gt: 300} and duration[lt] to duration: {$lt: 10} for the MongoDB query. //
 
 
-
+        // ! gt|gte|lt|lte Feature
 
         // **************   HOW THIS IS DONE *****************  
 
@@ -87,8 +89,32 @@ const getAllTours = async (req, res) => {
 
         // console.log(filters)
 
-        const query = TourModel.find(filters)
-        const tours = await query
+        let filteredTours = TourModel.find(filters)
+
+
+        // ! SORTING Feature
+
+        // check whether sort is given as a query
+        if (req.query.sort) {
+
+            // * In a URL, query parameters are typically delimited by commas for readability and URL encoding standards. For example, if a user wants to sort by price in ascending order and then by rating in descending order, they might send a request like this: "http://yourwebsite.com/api/tours?sort=price,-rating" 
+
+            // * MongoDB Sort Method Format: MongoDB's sort method expects each field to be sorted by as a separate argument, and these arguments are typically separated by spaces in JavaScript. For instance, sorting by price in ascending order and rating in descending order would look like this in MongoDB query syntax: .sort('price -rating')
+
+            // * So to do the matching we will do the following
+
+
+            const sortConditions = req.query.sort.split(',').join(' ')  // convert the sort criteria to mongoDb format
+
+            filteredTours = filteredTours.sort(sortConditions)  // actual sorting happens here
+
+
+        } else {
+            query = query.sort('-createdAt') // descending order -> newest first 
+
+        }
+
+        const tours = await filteredTours
 
 
         res.status(200)

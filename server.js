@@ -9,7 +9,10 @@ const app = require('./app');
 // this connect function returns a promise 
 mongoose.connect(process.env.DB_STRING)
     .then(() => console.log('DB connection successful!'))
-    .catch(err => console.log('Could not connect to db -> ' + err))
+    .catch(err => {
+        console.log('Could not connect to db -> ' + err)
+        process.exit(1)
+    })
 
 
 
