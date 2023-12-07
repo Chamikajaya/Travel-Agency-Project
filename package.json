@@ -4,8 +4,9 @@
   "description": "Learning backend dev with node + express + mongo",
   "main": "index.js",
   "scripts": {
-    "start:dev": "nodemon server.js",
-    "start:prod": "set NODE_ENV=production&& nodemon server.js",
+    "seeder": "node seeder.js",
+    "start dev": "nodemon server.js",
+    "start prod": "set NODE_ENV=production&& nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Chamika Jayasinghe",
