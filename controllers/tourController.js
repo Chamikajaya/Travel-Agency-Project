@@ -110,9 +110,38 @@ const getAllTours = async (req, res) => {
 
 
         } else {
-            query = query.sort('-createdAt') // descending order -> newest first 
+            filteredTours = filteredTours.sort('-createdAt') // descending order -> newest first 
 
         }
+
+        // ! FIELDS LIMITING Feature
+
+        if (req.query.fields) {
+            const fieldSet = req.query.fields.split(',').join(' ')
+            filteredTours = filteredTours.select(fieldSet)
+
+
+        } else {
+            filteredTours = filteredTours.select('-__v')  // here __v is a mongoose related field, and we will not send it as a field by simply using minus sign(-)
+        }
+
+        //! PAGINATION Feature
+
+        const page = parseInt(req.query.page) || 1  // default val is 1
+        const limit = parseInt(req.query.limit) || 4  // default is set to 4 tours per pg
+        const skip = (page - 1) * limit
+
+        // counter the case where user enters a page number > existing pgs
+        const totalDocs = await TourModel.countDocuments()
+        const maxPgs = Math.ceil(totalDocs / limit)
+
+        if (page > maxPgs) { throw new Error("Invalid page number. Page does not exist 😡") }
+
+        // if everything is successful
+        filteredTours = filteredTours.skip(skip).limit(limit)
+
+
+
 
         const tours = await filteredTours
 

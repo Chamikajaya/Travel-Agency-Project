@@ -78,6 +78,7 @@ const tourSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now(),
+        select: false  // since select is false we will never send createdAt field as response (security reasons,... 🙀)
     },
 
     startDates: [Date]
