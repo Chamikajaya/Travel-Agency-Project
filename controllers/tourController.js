@@ -35,16 +35,74 @@ const getAllTours = async (req, res) => {
 
     try {
 
-        const allTours = await TourModel.find()
+        // our query obj may have extra fields such as 'limit', 'sort',...So we should remove them from the query obj as follows
+
+        // cloning the query obj
+        let clonedQuery = { ...req.query }
+
+        const excludedFields = ['page', 'sort', 'limit', 'fields']
+
+        // removing the unnecessary fields from clonedObj  --> we should use [] instead of . because the dot notation requires the property name to be known
+        excludedFields.forEach((field) => delete clonedQuery[field])
+
+
+        // console.log(clonedQuery)
+
+        // * What happens if we use "await" here (Direct execution)--> Since the query is executed immediately, you don’t have the opportunity to modify or add conditions to the query afterward. This approach is best when the query is fixed and doesn't require further refinement.
+
+        // const allTours = await TourModel.find(clonedQuery)
+
+
+        //  ** Delayed Execution --> This separation allows you to manipulate or refine the query further before executing it.
+
+        // * Matching Client-Side and Server-Side Syntax:--> Typically, the query parameters sent from the client-side (like through a URL in a web application) are in a more readable or user-friendly format (e.g., lt, gt, lte, gte).  However, the server-side, which interacts with the database, must translate these into the syntax that the database understands. In this case, your code acts as a translator between the client-side representation and the MongoDB query syntax.
+
+        // * for example consider URL ->  http://yourwebsite.com/api/tours?price[gt]=300&duration[lt]=10 . When this URL is accessed, your server receives an object like:-->
+
+        /*
+        {
+        "price": {
+            "gt": "300"
+        },
+        "duration": {
+            "lt": "10"
+        }
+        */
+
+        // * Your server-side code then needs to convert this into a format that MongoDB understands. The conversion process you implement in your code would translate price[gt] to price: {$gt: 300} and duration[lt] to duration: {$lt: 10} for the MongoDB query. //
+
+
+
+
+        // **************   HOW THIS IS DONE *****************  
+
+        // convert the cloned query obj into a JSON string to run replace func
+        let clonedString = JSON.stringify(clonedQuery)
+
+        // run replace method + regEx
+        clonedString = clonedString.replace(/\b(gt|gte|lt|lte)\b/g, (match) => `$${match}`)
+
+        // parse the string into an obj
+        const filters = JSON.parse(clonedString)
+
+        // console.log(filters)
+
+        const query = TourModel.find(filters)
+        const tours = await query
+
 
         res.status(200)
             .json({
                 status: "successful",
-                totalTours: allTours.length,
-                allTours: allTours
+                totalTours: tours.length,
+                allTours: tours
             })
 
-    } catch (error) {
+
+    }
+
+
+    catch (error) {
 
         res.status(404).json({
             status: "Unsuccessful",
