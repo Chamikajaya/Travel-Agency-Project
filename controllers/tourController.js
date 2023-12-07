@@ -1,5 +1,19 @@
-const fs = require('fs')
 const TourModel = require('../models/tourModel')
+
+
+// * API aliasing --> These aliases are essentially shortcuts for more complex or commonly used queries. 
+// @desc --> Get top 5 , highest rated, cheapest tours
+// GET api / v1 / tours / top-5-rated-cheapest
+const topFiveRatedAndCheapest = (req, res, next) => {
+
+    req.query.limit = '5'
+    req.query.sort = '-ratingsAverage,price'
+    req.query.fields = 'name, price,ratingsAverage,difficulty,summary'
+
+    next()  // ! do not forget to call next() ☝️
+
+
+}
 
 
 // @desc --> create a tour
@@ -265,6 +279,7 @@ module.exports = {
     getOneTour,
     updateTour,
     deleteTour,
-    createTour
+    createTour,
+    topFiveRatedAndCheapest
 }
 
