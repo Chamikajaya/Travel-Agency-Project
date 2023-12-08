@@ -2,6 +2,7 @@ const TourModel = require('../models/tourModel')
 const APIFeatures = require('../utils/APIFeatures')
 
 
+// todo ==>  API then GERMAN then REACT 
 
 
 // @desc --> create a tour
@@ -160,6 +161,8 @@ const deleteTour = async (req, res) => {
 
 }
 
+
+
 const getToursStats = async (req, res) => {
 
     try {
@@ -275,12 +278,6 @@ const getMonthlyPlan = async (req, res) => {
                 errorMsg: error.message
             })
     }
-
-
-
-
-
-
 
 
 }

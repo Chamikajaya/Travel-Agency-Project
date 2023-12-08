@@ -4,6 +4,9 @@ const mongoose = require('mongoose')
 // Schema --> define the structure of the data
 // Model --> a wrapper for the schema, provides an interface to the database for CRUD operations
 
+
+
+
 const tourSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -82,6 +85,24 @@ const tourSchema = new mongoose.Schema({
     },
 
     startDates: [Date]
+
+
+},
+    { toJSON: { virtuals: true } })  //  if you pass a document to Express' res.json() function, virtuals will not be included by default. include virtuals in res.json(), you need to set the toJSON schema option to { virtuals: true }
+
+
+// * virtual props ==>  a virtual is a property that is not stored in MongoDB. Virtuals are typically used for computed properties on documents. Also help us separate app and business logic  
+
+
+// here we need to use "this" keyword, so we must use traditional function 
+tourSchema.virtual('formattedDuration').get(function () {
+
+
+    const weeks = Math.floor(this.duration / 7)
+
+    const days = this.duration % 7
+
+    return `${weeks} weeks ${days} days`
 
 })
 
