@@ -71,6 +71,11 @@ class APIFeatures {
 
         // console.log(filters)
 
+        // ! if we do not want to include secret tours we could have just do this, but I ll do it using a pre find hook for learning purposes (commented line below)
+
+        // ** this.query = this.query.find({ ...filters, secretTour: { $ne: true } })
+
+
         this.query = this.query.find(filters)
 
         return this  // 

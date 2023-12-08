@@ -2,7 +2,6 @@ const TourModel = require('../models/tourModel')
 const APIFeatures = require('../utils/APIFeatures')
 
 
-// todo ==>  API then GERMAN then REACT 
 
 
 // @desc --> create a tour

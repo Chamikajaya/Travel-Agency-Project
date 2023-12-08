@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const slugify = require('slugify')
 
 
 // Schema --> define the structure of the data
@@ -15,6 +16,8 @@ const tourSchema = new mongoose.Schema({
         minlength: [3, 'Tour name must have at least 5 characters'],
         maxlength: [30, 'Tour name must have a max of  30 characters']
     },
+
+    slug: String,  // this will be our slug for the tour   (will be created using slugify)
 
     price: {
         type: Number,
@@ -84,7 +87,13 @@ const tourSchema = new mongoose.Schema({
         select: false  // since select is false we will never send createdAt field as response (security reasons,... 🙀)
     },
 
-    startDates: [Date]
+    startDates: [Date],
+
+    secretTour: {
+        type: Boolean,
+        default: false
+
+    }
 
 
 },
@@ -94,7 +103,7 @@ const tourSchema = new mongoose.Schema({
 // * virtual props ==>  a virtual is a property that is not stored in MongoDB. Virtuals are typically used for computed properties on documents. Also help us separate app and business logic  
 
 
-// here we need to use "this" keyword, so we must use traditional function 
+// refer Mongoose docs ==> here we need to use "this" keyword, so we must use traditional function 
 tourSchema.virtual('formattedDuration').get(function () {
 
 
@@ -105,6 +114,77 @@ tourSchema.virtual('formattedDuration').get(function () {
     return `${weeks} weeks ${days} days`
 
 })
+
+
+
+// refer Mongoose docs 
+// * Mongoose Middleware (also called pre and post hooks) ==> 
+
+// 1) Document Middleware
+tourSchema.pre('save', function (next) {  // * before saving data to the database
+
+    // ! Document middleware ==> "this" points to the current document⭐
+
+    // console.log(this)
+
+    this.slug = slugify(this.name, { replacement: '_', lower: true })  // refer slugify package docs
+
+    console.log('Slug added successfully')
+
+    next()  // ! call next() to pass control 💀
+
+})
+
+// ****  refer the commented code for more about Document type Mongoose hooks  **** \\
+
+/*
+// if we want we can have more than one hooks
+tourSchema.pre('save', function (next) {
+
+    console.log(this.name + ' is being saved. Please wait...')
+    next()
+})
+
+
+tourSchema.post('save', function (doc) {  // *post save  hooks have access to the doc
+
+    console.log(doc.name + ' --> has been saved. ')
+
+
+})
+*/
+
+
+// 2) Query middleware
+
+// ! refer utils/ API features/ find() section -> how the same thing is done 
+
+// ! below if we had used "find" only it will work only for "find", not for "findOne". So we use a regEx to run the middleware for any that has 'find' 
+
+
+tourSchema.pre(/^find/, function (next) {  // ! do not use ' ' with regEx
+
+    // only get tours which are not secret
+    this.find({ secretTour: { $ne: true } })
+
+    next()
+
+})
+
+
+// 3) Aggregation Middleware
+
+// if we do not do this in our aggregate routes we will get those secret tours
+tourSchema.pre('aggregate', function (next) {
+
+    // to add the match condition to the beginning of the array using JS's unshift
+    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } })
+
+    // console.log(this.pipeline())
+
+    next()
+})
+
 
 
 // convention is to name the model as capitalized
