@@ -12,21 +12,38 @@ const tourSchema = new mongoose.Schema({
     name: {
         type: String,
         unique: true,
-        required: [true, 'A name must be provided for the tour.'],
-        minlength: [3, 'Tour name must have at least 5 characters'],
-        maxlength: [30, 'Tour name must have a max of  30 characters']
+        required: [true, 'A name must be provided for the tour.'],  // validator
+        minlength: [3, 'Tour name must have at least 5 characters'],  // validator
+        maxlength: [30, 'Tour name must have a max of  30 characters'], // validator
+
+        validate: {  // custom validator using regEx
+            validator: function (value) {
+
+                return /^[A-Za-z\s]+$/.test(value)  // * test(value) is used test the pattern
+
+                /*
+                In this regex:
+                1) ^ asserts the start of a line.
+                2) [A-Za-z\s] allows uppercase letters (A-Z), lowercase letters (a-z), and whitespace characters (\s).
+                3) + ensures that there is at least one character matching the pattern.
+                4) $ asserts the end of a line. 
+                */
+            },
+            message: 'Tour name can contain only letters and spaces'
+        }
     },
 
     slug: String,  // this will be our slug for the tour   (will be created using slugify)
 
     price: {
         type: Number,
-        required: [true, 'A tour must have a price.'],
-        min: [0, 'Price must be >= 0']
+        required: [true, 'A tour must have a price.'],  // validator
+        min: [0, 'Price must be >= 0']  // validator
 
     },
 
     ratingsAverage: {
+
         type: Number,
         default: 0
 
@@ -40,7 +57,7 @@ const tourSchema = new mongoose.Schema({
     difficulty: {
         type: String,
         required: [true, 'Difficulty must be given'],
-        enum: {
+        enum: {  // validator
             values: ['easy', 'medium', 'difficult'],
             message: 'Tour difficulty must be --> easy/ medium/ difficult '
         }
@@ -59,7 +76,16 @@ const tourSchema = new mongoose.Schema({
 
     },
 
-    priceDiscount: Number,
+    priceDiscount: {
+        type: Number,
+
+        validate: {  // custom validator
+            validator: function (value) {
+                return this.price > value
+            },
+            message: 'The discount price must be lower than the actual price'
+        }
+    },
 
     summary: {
         type: String,
@@ -100,7 +126,7 @@ const tourSchema = new mongoose.Schema({
     { toJSON: { virtuals: true } })  //  if you pass a document to Express' res.json() function, virtuals will not be included by default. include virtuals in res.json(), you need to set the toJSON schema option to { virtuals: true }
 
 
-// * virtual props ==>  a virtual is a property that is not stored in MongoDB. Virtuals are typically used for computed properties on documents. Also help us separate app and business logic  
+// * virtual props ==>  a virtual is a property that is not stored in MongoDB. Virtuals are typically used for computed properties on documents. Also help us separate app and business logic  (discount calc, ... )
 
 
 // refer Mongoose docs ==> here we need to use "this" keyword, so we must use traditional function 
