@@ -5,7 +5,9 @@ const {
     updateTour,
     deleteTour,
     createTour,
-    topFiveRatedAndCheapest
+    topFiveRatedAndCheapest,
+    getToursStats,
+    getMonthlyPlan
 } = require("../controllers/tourController")
 
 const router = express.Router()
@@ -21,6 +23,12 @@ router.param('id', (req, res, next, id) => {
 
 router.route('/top-5-rated-cheapest')
     .get(topFiveRatedAndCheapest, getAllTours)
+
+router.route('/tour-stats')
+    .get(getToursStats)
+
+router.route('/monthly-plan/:year')
+    .get(getMonthlyPlan)
 
 
 router.route('/')
