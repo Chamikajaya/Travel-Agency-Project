@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: [true, 'Please enter your password'],
+        select: false,
         minlength: [8, 'Password must be at least 8 characters'],
     },
     passwordConfirm: {
@@ -54,6 +55,15 @@ userSchema.pre('save', async function (next) {
 
 
 })
+
+
+// checking the hashed password and the provided password upon login is correct using instance method ( an instance method is a method that you define on a Mongoose schema and which becomes available on each document (instance) created using that schema)
+
+userSchema.methods.correctPassword = async function (candidatePassword, userPassword) {
+
+    return await bcrypt.compare(candidatePassword, userPassword)  // returns a boolean
+}
+
 
 
 const User = mongoose.model('User', userSchema)
