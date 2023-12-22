@@ -1,3 +1,5 @@
+const AppError = require('../utils/AppError.js')
+
 const sendErrorInDev = (res, err) => {
     // in dev, send detailed error reports
     res.status(err.statusCode).json({
@@ -17,8 +19,7 @@ const sendErrorInProd = (res, err) => {
             msg: err.message,
         })
     } else {
-
-        // log the error to the hosting platform's console
+        // log the error to the hosting platform's console (for debugging)
         console.error('Error💀 -->' + err)
 
         // if it is not an operational error send a vague message + 500 
@@ -31,6 +32,16 @@ const sendErrorInProd = (res, err) => {
 
 }
 
+// handling mongodb related errors 
+
+// 1) cast error
+const handleCastError = (err) => {
+    console.log('Handle cast error function was called ')
+    const msg = `invalid ${err.path} : ${err.value} `
+    return new AppError(msg, 400)
+}
+
+
 const globalErrorHandler = (err, req, res, next) => {
 
     err.statusCode = err.statusCode || 500
@@ -40,6 +51,14 @@ const globalErrorHandler = (err, req, res, next) => {
     if (process.env.NODE_ENV === 'development') {
         sendErrorInDev(res, err)
     } else if (process.env.NODE_ENV === 'production') {
+
+
+        if (err.name === 'CastError') {
+            err = handleCastError(err);
+        }
+
+
+
         sendErrorInProd(res, err)
     }
 
