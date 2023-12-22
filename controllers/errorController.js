@@ -36,11 +36,29 @@ const sendErrorInProd = (res, err) => {
 
 // 1) cast error
 const handleCastError = (err) => {
-    console.log('Handle cast error function was called ')
     const msg = `invalid ${err.path} : ${err.value} `
     return new AppError(msg, 400)
 }
 
+// 2) duplicate field error
+const handleDuplicateFieldError = (err) => {
+    const duplicateName = err.keyValue.name  // this duplicate name could be accessed from first looking at the error obj in development env in postman
+    return new AppError(`A tour with the name "${duplicateName}"already exists`, 400)
+}
+
+// 3) validation error
+const handleValidationError = (err) => {
+
+    // By using Object.values(err.errors), we convert the properties of the err.errors object into an array,
+    const errorArray = Object.values(err.errors)
+
+    const errMsgArr = errorArray.map((e) => e.message)
+    const msg = `Invalid input given. Please handle the following. ${errMsgArr.join('.')}`
+    return new AppError(msg, 400)
+
+
+
+}
 
 const globalErrorHandler = (err, req, res, next) => {
 
@@ -52,11 +70,20 @@ const globalErrorHandler = (err, req, res, next) => {
         sendErrorInDev(res, err)
     } else if (process.env.NODE_ENV === 'production') {
 
-
+        // cast error
         if (err.name === 'CastError') {
             err = handleCastError(err);
         }
 
+        // duplicate fields error
+        if (err.code === 11000) {  // had to use this code field as there was no "name" prop in err obj
+            err = handleDuplicateFieldError(err)
+        }
+
+        // validation error
+        if (err.name === 'ValidationError') {
+            err = handleValidationError(err)
+        }
 
 
         sendErrorInProd(res, err)
