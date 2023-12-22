@@ -1,8 +1,11 @@
 const express = require('express');
 const morgan = require('morgan');
 
+const globalErrorHandler = require('./controllers/errorController')
+const AppError = require('./utils/AppError')
+
 const tourRouter = require('./routers/tourRouters')
-const userRouter = require('./routers/userRouters')
+// const userRouter = require('./routers/userRouters')
 
 const app = express();
 
@@ -27,11 +30,6 @@ app.use(getReqTime)
 
 // * The express.json() middleware function acts as a parser. It takes the raw request body and transforms it into a format that's easier to work with (in this case, JSON). After the middleware processes the request body, you can access the JSON data sent with the request using req.body in your route handlers. ==>
 
-app.use((req, res, next) => {
-    console.log(req.headers)
-    next()
-})
-
 
 app.use(express.json());
 app.use(express.static(`${__dirname}/public`))
@@ -45,7 +43,19 @@ if (process.env.NODE_ENV === 'development')
 
 // mounting routers
 app.use('/api/v1/tours', tourRouter)
-app.use('/api/v1/users', userRouter)
+// app.use('/api/v1/users', userRouter)
+
+// handle non-existing routes
+app.use('*', (req, res, next) => {
+
+    const err = new AppError(`Requested path ${req.originalUrl} does not exist !`, 404)
+
+    next(err)
+
+})
+
+// use the global error handler
+app.use(globalErrorHandler)
 
 
 // ! make sure to export app to server.js 😡
