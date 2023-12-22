@@ -3,7 +3,7 @@ class AppError extends Error {
     constructor(message, statusCode) {
         super(message)
 
-        this.statusCode = this.statusCode || 500
+        this.statusCode = statusCode || 500
         this.status = String(statusCode).startsWith('4') ? 'fail' : 'error'
 
         // we will use AppError class to create only operational errors. So by default isOperational is set to true
