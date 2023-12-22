@@ -10,6 +10,8 @@ const {
     getMonthlyPlan
 } = require("../controllers/tourController")
 
+const { protect } = require('../controllers/authController')
+
 const router = express.Router()
 
 
@@ -32,7 +34,7 @@ router.route('/monthly-plan/:year')
 
 
 router.route('/')
-    .get(getAllTours)
+    .get(protect, getAllTours)
     .post(createTour)
 
 

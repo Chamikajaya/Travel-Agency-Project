@@ -1,3 +1,4 @@
+const { promisify } = require('util')
 const User = require('../models/userModel')
 const jwt = require('jsonwebtoken')
 
@@ -30,6 +31,8 @@ const signUp = async (req, res) => {
             email: req.body.email,
             password: req.body.password,
             passwordConfirm: req.body.passwordConfirm,
+            passwordChangedAt: req.body.passwordChangedAt  // ! might remove this line later
+
 
         })
 
@@ -123,5 +126,96 @@ const login = async (req, res, next) => {
     }
 }
 
+// ! todo:-  Here we need to use the async wrapper (above 2 as well)
+const protect = async (req, res, next) => {
 
-module.exports = { signUp, login } 
+    try {
+        //*  1) Check whether the token exists
+
+        let token;
+
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+
+            // authorization: 'Bearer "our token" ' --> so we have to split and get the 2nd element (1st idx)
+            token = req.headers.authorization.split(' ')[1]
+
+            // console.log(token)
+        }
+
+        if (!token) {
+
+            // ! todo :-->
+            // return next(new AppError('Not logged in. Please login to access', 401)) 
+
+            res.status(401).json({
+                status: "Error",
+                msg: 'Not logged in. Please login to access'
+            })
+
+            return;
+        }
+
+
+
+
+        //*  2) Validate the token
+        // This function checks if the token is valid and not tampered with.
+        // If the token is valid, jwt.verify returns the decoded payload of the token, which typically contains the user's ID and other information (like the token's issue time).
+        const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)  // this is an obj
+
+        // console.log(decoded)
+
+        // ! todo:- HANDLE INVALID SIGNATURE + TOKEN EXPIRATION USING ERROR HANDLING IN ERROR CONTROLLER FILE 
+
+        //*  3) check whether the user exists (because after receiving the token, user might decide to delete his account, The function then checks if a user with the ID in the decoded token exists in the database.) ==>
+
+        const user = await User.findById(decoded.id)
+
+        if (!user) {
+
+            // ! todo :-
+            // return next(new AppError('user with this token no longer exists', 401 )) 
+
+
+            res.status(401).json({
+                status: "error",
+                msg: "user with this token no longer exists"
+            })
+
+            return;
+        }
+
+
+
+        //*  4) check if user changed the password after the token was issued
+
+        // The changedPasswordAfter method (custom instance method we defined on the user schema) compares the iat (issued at) field of the token with the user's password changed timestamp.
+        const isPassChangedAfter = user.changedPasswordAfter(decoded.iat)
+
+        if (isPassChangedAfter) {
+
+            // ! todo ->
+            // return next(new AppError ('User password was changed recently. Please login again',401))
+            res.status(401).json({
+                status: "error",
+                msg: 'User password was changed recently. Please login again'
+            })
+
+            return;
+        }
+
+
+
+        next()  // next will be called only if all 4 above situations are met (This means the user is authenticated and authorized to access the protected route.)
+
+    } catch (error) {
+        res.status(500).json({
+            status: "Error",
+            msg: error.message
+        })
+    }
+
+}
+
+
+module.exports = { signUp, login, protect } 

@@ -37,6 +37,9 @@ const userSchema = new mongoose.Schema({
 
 
     },
+
+    // this property is regarding AUTH - to check whether the user has changed his password 
+    passwordChangedAt: Date
 }
 )
 
@@ -62,6 +65,27 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.correctPassword = async function (candidatePassword, userPassword) {
 
     return await bcrypt.compare(candidatePassword, userPassword)  // returns a boolean
+}
+
+
+userSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {
+
+    // do the checking only if "passwordChangedAt" property exists
+    if (this.passwordChangedAt) {
+
+        // convert Date into TimeStamp (coz initially this is in Date format, but token issue is in seconds format ,)
+        const passChangedTimeStamp = this.passwordChangedAt.getTime() / 1000 // divide by 1000 to make ms into seconds
+
+        // console.log(passChangedTimeStamp, JWTTimeStamp)
+
+        return passChangedTimeStamp > JWTTimeStamp  // if this is true, that means user has changed his password after issuing the token
+    }
+
+
+    // this means that the user has never changed the password (passwordChangedAt does not exist)
+    return false;
+
+
 }
 
 

@@ -27,6 +27,11 @@ app.use(getReqTime)
 
 // * The express.json() middleware function acts as a parser. It takes the raw request body and transforms it into a format that's easier to work with (in this case, JSON). After the middleware processes the request body, you can access the JSON data sent with the request using req.body in your route handlers. ==>
 
+app.use((req, res, next) => {
+    console.log(req.headers)
+    next()
+})
+
 
 app.use(express.json());
 app.use(express.static(`${__dirname}/public`))

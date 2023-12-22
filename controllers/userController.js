@@ -51,13 +51,23 @@ const updateUser = (req, res) => {
             message: "User routes are yet to implement."
         })
 }
-const deleteUser = (req, res) => {
+const deleteUser = async (req, res) => {
 
-    res.status(500)
-        .json({
-            status: "failed",
-            message: "User routes are yet to implement."
-        })
+    try {
+
+        await User.findByIdAndDelete(req.params.id)
+
+        res.status(204).json({ status: "successful deletion" })
+
+    } catch (error) {
+
+        res.status(404)
+            .json({
+                status: "failed",
+                message: error.message
+            })
+
+    }
 }
 
 
