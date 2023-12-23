@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const validator = require('validator')
+const bcrypt = require('bcrypt')
 
 const userSchema = new mongoose.Schema({
 
@@ -24,10 +25,35 @@ const userSchema = new mongoose.Schema({
 
     passwordConfirm: {
         type: String,
-        required: [true, 'Please confirm your password']
+        required: [true, 'Please confirm your password'],
+        validate:
+        {
+            validator: function (pass) {
+                return this.password === pass  // will return true if both password & confirmPass (pass) matches
+            },
+            message: 'Passwords do not match '
+        }
     }
 
 })
+
+
+// hash password before saving to the DB using pre save hook
+userSchema.pre('save', async function (next) {
+
+    // hash the password only if it has been modified, if not return 
+    if (!this.isModified('password')) {
+        return next()
+    }
+    this.password = await bcrypt.hash(this.password, 12)
+    this.passwordConfirm = undefined  // as we no longer need passConfirm field, delete it 
+    next()
+
+})
+
+
+
+
 
 const User = mongoose.model('User', userSchema)
 
