@@ -46,6 +46,7 @@ const handleDuplicateFieldError = (err) => {
     return new AppError(`A tour with the name "${duplicateName}"already exists`, 400)
 }
 
+
 // 3) validation error
 const handleValidationError = (err) => {
 
@@ -85,13 +86,8 @@ const globalErrorHandler = (err, req, res, next) => {
             err = handleValidationError(err)
         }
 
-
         sendErrorInProd(res, err)
     }
-
-
-
-
 }
 
 module.exports = globalErrorHandler
