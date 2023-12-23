@@ -19,7 +19,8 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: [true, 'You must specify a password'],
-        minlength: [6, 'Password length should at least be 6 char long']
+        minlength: [6, 'Password length should at least be 6 char long'],
+        select: false  //  as we do not wanna send the password with response
 
     },
 
@@ -52,6 +53,10 @@ userSchema.pre('save', async function (next) {
 })
 
 
+// "instance method" to check whether passwords matched upon login  => call this method using an instance not the model itself ⭐
+userSchema.methods.checkPassword = async function (realPass, enteredPass) {
+    return await bcrypt.compare(enteredPass, realPass)
+}
 
 
 

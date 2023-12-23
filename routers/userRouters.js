@@ -3,11 +3,12 @@ const { getAllUsers,
     getOneUser,
     deleteUser
 } = require('../controllers/userController.js')
-const { signup } = require('../controllers/authController.js')
+const { signup, login } = require('../controllers/authController.js')
 
 const router = express.Router()
 
 router.post('/signup', signup)
+router.post('/login', login)
 
 router.route('/').get(getAllUsers)
 
