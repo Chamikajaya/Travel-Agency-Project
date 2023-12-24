@@ -1,3 +1,4 @@
+const { promisify } = require('util')
 const User = require('../models/userModel')
 const asyncWrapper = require('../utils/asyncWrapper')
 const jwt = require('jsonwebtoken')
@@ -16,8 +17,9 @@ const generateToken = (id) => {
 const signup = asyncWrapper(async (req, res, next) => {
 
     // for security reasons do not directly accept req.body, instead do it like below
-    const { name, email, password, passwordConfirm } = req.body
-    const user = await User.create({ name, email, password, passwordConfirm })
+    const { name, email, password, passwordConfirm, passwordChangedAt } = req.body  // ! remove the last prop later (passwordChangedAt), once update user route is implemented
+    const user = await User.create({ name, email, password, passwordConfirm, passwordChangedAt })          // ! remove the last prop later, once update user route is implemented
+
 
     const token = generateToken(user._id)
 
@@ -26,6 +28,7 @@ const signup = asyncWrapper(async (req, res, next) => {
         message: "User signup is successful",
         token: token,  // send the token to the user  
         newUser: user
+
     })
 
 })
@@ -63,6 +66,40 @@ const login = asyncWrapper(async (req, res, next) => {
 
 })
 
+// protect the sensitive routes 
+const protect = asyncWrapper(async (req, res, next) => {
 
+    // 1) check whether the token exists
+    let token;
 
-module.exports = { signup, login }
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1]  // grab the token
+    }
+
+    if (!token) {
+        return next(new AppError('Please login to continue.', 401))
+    }
+
+    // 2) verify the token -> to check whether the token has been tampered with
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)  // decoded obj will contain userId, iat and exp
+
+    console.log(decoded)
+
+    // 3) check if user still exists (because user might have deleted his account after receiving his token )
+    const matchingUser = await User.findById(decoded.id)
+
+    if (!matchingUser) {
+        return next(new AppError('User with the matching token no longer exists', 401))
+    }
+
+    // 4) check if the user has changed his password after the token issue
+    const isChanged = matchingUser.isPassChangedAfterTokenIssue(decoded.iat)
+    if (isChanged) {
+        return next(new AppError('User password was changed recently, after the issue of the current token ', 401))
+    }
+
+    next()  // if all the above conditions are met, give access to the protected path😃
+
+})
+
+module.exports = { signup, login, protect }

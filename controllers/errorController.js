@@ -32,6 +32,13 @@ const sendErrorInProd = (res, err) => {
 
 }
 
+const handleTokenError = () => {
+    return new AppError('Invalid token. Please login again', 401)
+}
+
+const handleTokenExpiredError = () => {
+    return new AppError('Token has expired !', 401)
+}
 // handling mongodb related errors 
 
 // 1) cast error
@@ -56,8 +63,6 @@ const handleValidationError = (err) => {
     const errMsgArr = errorArray.map((e) => e.message)
     const msg = `Invalid input given. Please handle the following. ${errMsgArr.join('.')}`
     return new AppError(msg, 400)
-
-
 
 }
 
@@ -85,6 +90,18 @@ const globalErrorHandler = (err, req, res, next) => {
         if (err.name === 'ValidationError') {
             err = handleValidationError(err)
         }
+
+        //json web token error (when the token is tampered )
+        if (err.name === 'JsonWebTokenError') {
+            err = handleTokenError()
+        }
+
+        // when token has expired
+        if (err.name === 'TokenExpiredError') {
+            err = handleTokenExpiredError()
+        }
+
+
 
         sendErrorInProd(res, err)
     }

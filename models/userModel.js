@@ -34,7 +34,9 @@ const userSchema = new mongoose.Schema({
             },
             message: 'Passwords do not match '
         }
-    }
+    },
+
+    passwordChangedAt: Date // this field is to get the time when user updated his password. This is useful when implementing "protect" route in auth controller
 
 })
 
@@ -58,6 +60,19 @@ userSchema.methods.checkPassword = async function (realPass, enteredPass) {
     return await bcrypt.compare(enteredPass, realPass)
 }
 
+
+// "instance method" to check whether user last updated password > token issue
+userSchema.methods.isPassChangedAfterTokenIssue = function (tokenIssue) {
+
+    if (this.passwordChangedAt) {
+        const passChangeTime = Number(this.passwordChangedAt.getTime() / 1000)
+        if (passChangeTime > tokenIssue) {  // if this is true then password was modified after grabbing the token
+            return true
+        }
+    }
+
+    return false;  // password has never been changed
+}
 
 
 const User = mongoose.model('User', userSchema)
