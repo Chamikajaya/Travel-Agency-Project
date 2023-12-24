@@ -3,6 +3,8 @@ const User = require('../models/userModel')
 const asyncWrapper = require('../utils/asyncWrapper')
 const jwt = require('jsonwebtoken')
 const AppError = require('../utils/AppError')
+const sendEmail = require('../utils/email')
+
 
 const generateToken = (id) => {
     // sign the user a token upon sign up -> payload | secret | exp time
@@ -123,5 +125,56 @@ const restrictTo = (...roles) => {
     }
 }
 
+// forgot password
+// ! TODO:-> AFTER 10 MIN WE NO LONGER NEED THE PASSWORD RESET TOKEN AND THE TOKEN EXP DATE. TRY TO CLEAR THIS AUTOMATICALLY AFTER THE EXP TIME USING AN INDEX  IN MONGO (?) 
 
-module.exports = { signup, login, protect, restrictTo }
+const forgotPassword = async (req, res, next) => {
+
+    // 1) get user based on the given email
+    const user = await User.findOne({ email: req.body.email })
+
+    if (!user) {
+        return next(new AppError('Please provide the email address which you signed up ', 404))
+    }
+
+    // 2) generate the random password reset token using the instance method we defined
+    const resetToken = user.generatePasswordResetToken()
+    await user.save({ validateBeforeSave: false })  //  * to save these changes to the database. + we set the validateBeforeSave to false coz the user will not post all the required fields we specified in the schema, for this particular route
+
+    // 3) send the token to the user's email
+
+    const resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/resetPassword/${resetToken}`
+
+    const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`
+
+
+    // * in this case, we can not use asyncWrapper as we need to do more than just sending the error to the global error handler. We need to reset the password reset token and the token expiry time as well. So we will handle the error here itself using try catch block
+
+    try {
+        await sendEmail({
+            email: user.email,
+            subject: 'Your password reset token (valid for 10 min)',
+            message: message
+        })
+        res.status(200).json({
+            status: "successful",
+            message: "Token sent to the email"
+
+        })
+    } catch (err) {
+        user.passwordResetToken = undefined
+        user.passwordResetTokenExpires = undefined
+        console.log(err)
+        await user.save({ validateBeforeSave: false })  //   to save these changes to the database. (due to these necessary additional steps in presence of an error, we could not simply use the global error handler)
+
+        return next(new AppError('There was an error sending the email. Try again later!', 500))
+    }
+
+}
+
+
+// reset password
+const resetPassword = (req, res, next) => { }
+
+
+module.exports = { signup, login, protect, restrictTo, forgotPassword, resetPassword }

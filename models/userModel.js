@@ -1,6 +1,8 @@
+const crypto = require('crypto')
 const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcrypt')
+
 
 const userSchema = new mongoose.Schema({
 
@@ -43,7 +45,10 @@ const userSchema = new mongoose.Schema({
         }
     },
 
-    passwordChangedAt: Date // this field is to get the time when user updated his password. This is useful when implementing "protect" route in auth controller
+    passwordChangedAt: Date, // this field is to get the time when user updated his password. This is useful when implementing "protect" route in auth controller
+
+    passwordResetToken: String,
+    passwordResetTokenExpires: Date
 
 })
 
@@ -80,6 +85,26 @@ userSchema.methods.isPassChangedAfterTokenIssue = function (tokenIssue) {
 
     return false;  // password has never been changed
 }
+
+// Instance method to generate a random token for password reset
+userSchema.methods.generatePasswordResetToken = function () {
+
+    // Generate a random token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    // Hash the token and store it in the database  (encrypted token)
+    this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // console.log(resetToken, this.passwordResetToken)
+
+    // Set the expiration time for the token (e.g., 10 minutes)
+    this.passwordResetTokenExpires = Date.now() + 10 * 60 * 1000;
+
+    // Return the plain token, not the encrypted one (to be sent to the user via email)
+    return resetToken;
+
+}
+
 
 
 const User = mongoose.model('User', userSchema)
