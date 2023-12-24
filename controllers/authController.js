@@ -17,8 +17,8 @@ const generateToken = (id) => {
 const signup = asyncWrapper(async (req, res, next) => {
 
     // for security reasons do not directly accept req.body, instead do it like below
-    const { name, email, password, passwordConfirm, passwordChangedAt } = req.body  // ! remove the last prop later (passwordChangedAt), once update user route is implemented
-    const user = await User.create({ name, email, password, passwordConfirm, passwordChangedAt })          // ! remove the last prop later, once update user route is implemented
+    const { name, email, password, passwordConfirm, role, passwordChangedAt } = req.body  // ! remove the last prop later (passwordChangedAt), once update user route is implemented
+    const user = await User.create({ name, email, password, passwordConfirm, role, passwordChangedAt })          // ! remove the last prop later, once update user route is implemented
 
 
     const token = generateToken(user._id)
@@ -83,7 +83,7 @@ const protect = asyncWrapper(async (req, res, next) => {
     // 2) verify the token -> to check whether the token has been tampered with
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)  // decoded obj will contain userId, iat and exp
 
-    console.log(decoded)
+    // console.log(decoded)
 
     // 3) check if user still exists (because user might have deleted his account after receiving his token )
     const matchingUser = await User.findById(decoded.id)
@@ -92,14 +92,36 @@ const protect = asyncWrapper(async (req, res, next) => {
         return next(new AppError('User with the matching token no longer exists', 401))
     }
 
-    // 4) check if the user has changed his password after the token issue
+    // 4) check if the user has changed his password after the token issue (this will be done using the instance method defined in User schema)
     const isChanged = matchingUser.isPassChangedAfterTokenIssue(decoded.iat)
     if (isChanged) {
         return next(new AppError('User password was changed recently, after the issue of the current token ', 401))
     }
 
+    req.user = matchingUser  //  to attach the authenticated user object to the request object. This allows downstream middleware (such as authorization )or route handlers to access information about the authenticated user.
+
     next()  // if all the above conditions are met, give access to the protected path😃
 
 })
 
-module.exports = { signup, login, protect }
+
+// authorization
+/*
+It takes a variable number of roles as arguments (using the spread operator ...roles) and returns a middleware function.
+while we  can't directly pass arguments to middleware in Express, we can achieve a similar effect by using higher-order functions, like the one below 
+*/
+const restrictTo = (...roles) => {
+
+    // no need to wrap this using asyncWrapper as this is not a async func
+
+    return (req, res, next) => {
+
+        if (!roles.includes(req.user.role)) {
+            return next(new AppError('You do not have enough permission to perform this action', 403))  // 403 is for forbidden
+        }
+        next()
+    }
+}
+
+
+module.exports = { signup, login, protect, restrictTo }

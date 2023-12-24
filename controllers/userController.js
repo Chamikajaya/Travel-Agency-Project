@@ -37,9 +37,16 @@ const deleteUser = asyncWrapper(async (req, res, next) => {
         return next(new AppError('Requested user not found', 404))
     }
 
-    res.status(204)
+    res.status(204).send()
 })
 
 
+// ! for convenience I made this while dev, will be deleted later
+const deleteAllUsers = asyncWrapper(async (req, res, next) => {
+    await User.deleteMany()
 
-module.exports = { getAllUsers, getOneUser, deleteUser }
+    res.status(204).send()
+})
+
+
+module.exports = { getAllUsers, getOneUser, deleteUser, deleteAllUsers }
