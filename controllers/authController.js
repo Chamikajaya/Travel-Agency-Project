@@ -2,6 +2,7 @@ const { promisify } = require('util')
 const User = require('../models/userModel')
 const asyncWrapper = require('../utils/asyncWrapper')
 const jwt = require('jsonwebtoken')
+const crypto = require('crypto')
 const AppError = require('../utils/AppError')
 const sendEmail = require('../utils/email')
 
@@ -126,8 +127,6 @@ const restrictTo = (...roles) => {
 }
 
 // forgot password
-// ! TODO:-> AFTER 10 MIN WE NO LONGER NEED THE PASSWORD RESET TOKEN AND THE TOKEN EXP DATE. TRY TO CLEAR THIS AUTOMATICALLY AFTER THE EXP TIME USING AN INDEX  IN MONGO (?) 
-
 const forgotPassword = async (req, res, next) => {
 
     // 1) get user based on the given email
@@ -174,7 +173,46 @@ const forgotPassword = async (req, res, next) => {
 
 
 // reset password
-const resetPassword = (req, res, next) => { }
+const resetPassword = asyncWrapper(async (req, res, next) => {
+
+    // 1) get the user based on the token
+
+    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    const user = await User.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetTokenExpires: { $gt: Date.now() }  // this will check whether token exp time is greater than curr time, if so it'll return true 
+    })
+
+    // 2) check whether the user exits and token has not expired -> set the new password
+    console.log(user)
+    if (!user) {
+        return next(new AppError('Invalid token or the reset token has expired. ', 400))
+    }
+
+    // 3) update changedPasswordAt property in user schema
+    user.password = req.body.password
+    user.passwordConfirm = req.body.passwordConfirm
+    user.passwordResetToken = undefined
+    user.passwordResetTokenExpires = undefined
+
+    // user.passwordChangedAt = Date.now()  ==> rather than doing the update here we did it in a pre save hook
+
+    await user.save({ validateBeforeSave: true })  // we want validators to run to see whether the password and passwordConfirm matches
+
+
+    // 4) log the user in and send the JWT
+    const jwtToken = generateToken(user._id)
+
+    res.status(200).json({
+        status: "successful",
+        jwtToken: jwtToken
+    })
+
+
+
+
+})
 
 
 module.exports = { signup, login, protect, restrictTo, forgotPassword, resetPassword }

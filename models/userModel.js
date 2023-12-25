@@ -66,6 +66,17 @@ userSchema.pre('save', async function (next) {
 
 })
 
+// Update passwordChangedAt before saving when password is changed
+userSchema.pre('save', function (next) {
+
+    if (this.isModified('password') || this.isNew) {
+        return next()   //  exit the middleware and proceed with the save operation.
+    }
+
+    this.passwordChangedAt = Date.now() - 1000  // we subtract 1 sec, because sometimes the JWT token may be created before the saving. (refer )
+    next()
+
+})
 
 // "instance method" to check whether passwords matched upon login  => call this method using an instance not the model itself ⭐
 userSchema.methods.checkPassword = async function (realPass, enteredPass) {
@@ -99,6 +110,7 @@ userSchema.methods.generatePasswordResetToken = function () {
 
     // Set the expiration time for the token (e.g., 10 minutes)
     this.passwordResetTokenExpires = Date.now() + 10 * 60 * 1000;
+
 
     // Return the plain token, not the encrypted one (to be sent to the user via email)
     return resetToken;
