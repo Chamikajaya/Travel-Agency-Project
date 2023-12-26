@@ -73,7 +73,7 @@ userSchema.pre('save', function (next) {
         return next()   //  exit the middleware and proceed with the save operation.
     }
 
-    this.passwordChangedAt = Date.now() - 1000  // we subtract 1 sec, because sometimes the JWT token may be created before the saving. (refer )
+    this.passwordChangedAt = Date.now() - 1000  // we subtract 1 sec, because sometimes the JWT token may be created before the saving. (refer resetPassword controller in authController)
     next()
 
 })

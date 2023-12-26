@@ -172,7 +172,8 @@ const forgotPassword = async (req, res, next) => {
 }
 
 
-// reset password
+
+// reset password upon forgetting password
 const resetPassword = asyncWrapper(async (req, res, next) => {
 
     // 1) get the user based on the token
@@ -208,11 +209,49 @@ const resetPassword = asyncWrapper(async (req, res, next) => {
         status: "successful",
         jwtToken: jwtToken
     })
-
-
-
-
 })
 
 
-module.exports = { signup, login, protect, restrictTo, forgotPassword, resetPassword }
+//update password
+const updatePassword = asyncWrapper(async (req, res, next) => {
+
+    // 1) get the user
+    const user = await User.findById(req.user.id).select('+password') // we get user object from the protect middleware ☝️ + make sure to explicitly select password field
+
+    if (!user) {
+        return next(new AppError('User not found', 404))
+    }
+    // console.log(user)
+
+    // 2) check if the current password is correct with the one in the DB
+    // const passMatch = await user.checkPassword(user.password, req.body.currPassword)
+
+    if (!(await user.checkPassword(user.password, req.body.currPassword))) {
+        return next(new AppError('Entered password does not match with the current one', 401))
+    }
+
+    // 3) update the password
+
+    user.password = req.body.password
+    user.passwordConfirm = req.body.passwordConfirm
+    await user.save() // * if we do the password update using User.findByIDAndUpdate() then the validators + pre save hooks would not have worked
+
+    // 4) log the user in and send the JWT
+    const jwtToken = generateToken(user._id)
+
+    res.status(200).json({
+        status: "successful",
+        jwtToken: jwtToken
+    })
+})
+
+
+
+
+
+
+
+
+
+
+module.exports = { signup, login, protect, restrictTo, forgotPassword, resetPassword, updatePassword }
