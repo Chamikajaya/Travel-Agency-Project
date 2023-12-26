@@ -1,6 +1,7 @@
 const express = require('express')
 const { getAllUsers,
     getOneUser,
+    updateMe,
     deleteUser,
     deleteAllUsers
 } = require('../controllers/userController.js')
@@ -15,6 +16,8 @@ router.patch('/updatePassword', protect, updatePassword)  // since only the logg
 
 router.post('/forgotPassword', forgotPassword)
 router.patch('/resetPassword/:token', resetPassword)
+
+router.patch('/updateMe', protect, updateMe)
 
 
 router.route('/').get(getAllUsers).delete(deleteAllUsers)
