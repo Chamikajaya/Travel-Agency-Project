@@ -54,11 +54,25 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: true,
         select: false
-    }
+    },
+
+    failedLoginAttempts: {
+        type: Number,
+        default: 0
+    },
+
+    lockoutTime: Date  // gives the time until the account becomes free to login again after blocking
 
 })
 
+// query middleware to select only the active users from the DB for any "find" methods
+userSchema.pre(/^find/, function (next) {
+    // this refers to the current query object
+    this.find({ active: { $ne: false } })
 
+    next()
+
+})
 // hash password before saving to the DB using pre save hook
 userSchema.pre('save', async function (next) {
 
@@ -84,14 +98,7 @@ userSchema.pre('save', function (next) {
 
 })
 
-// query middleware to select only the active users from the DB for any "find" methods
-userSchema.pre(/^find/, function (next) {
-    // this refers to the current query object
-    this.find({ active: { $ne: false } })
 
-    next()
-
-})
 
 
 // "instance method" to check whether passwords matched upon login  => call this method using an instance not the model itself ⭐

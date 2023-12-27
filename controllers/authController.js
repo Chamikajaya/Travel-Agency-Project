@@ -52,7 +52,28 @@ const login = asyncWrapper(async (req, res, next) => {
     const user = await User.findOne({ email: email }).select('+password')  // should explicitly select the password as in our userSchema we set select password as false
 
     // since checkPassword is an instance method it should be called using user instance not User model
-    if (!user || !(await user.checkPassword(user.password, password))) {
+    if (!user || user.lockoutTime > Date.now() || !(await user.checkPassword(user.password, password))) {
+
+        if (user && user.failedLoginAttempts >= 5 && user.lockoutTime > Date.now()) {
+            const unlockTime = new Date(user.lockoutTime).toLocaleTimeString(); // Convert lockout time to human-readable format
+            return next(new AppError(`Account is locked due to multiple failed login attempts. Try again after ${unlockTime}.`, 401));
+        }
+
+
+
+
+        // increment failed login attempts
+        user.failedLoginAttempts++
+
+        // set when the account becomes free again 
+        if (user.failedLoginAttempts >= 5) {
+            const duration = process.env.LOCKOUT_DURATION || 30
+            user.lockoutTime = Date.now() + duration * 60 * 1000
+        }
+
+        // save these new field changes to the user doc
+        await user.save({ validateBeforeSave: false })
+
         return next(new AppError('Username or password does not match. Provide correct credentials', 401))  // 401 means unauthorized
 
     }
@@ -60,6 +81,12 @@ const login = asyncWrapper(async (req, res, next) => {
     // * 3) if above conditions are met send the token
 
     const token = generateToken(user._id)
+
+    // also reset failedLoginAttempts and lockoutTime
+    user.failedLoginAttempts = 0;
+    user.lockoutTime = null;
+    await user.save({ validateBeforeSave: false });
+
 
     res.status(200).json({
         status: "Successful",
@@ -196,6 +223,11 @@ const resetPassword = asyncWrapper(async (req, res, next) => {
     user.passwordConfirm = req.body.passwordConfirm
     user.passwordResetToken = undefined
     user.passwordResetTokenExpires = undefined
+
+    // also reset failedLoginAttempts and lockoutTime upon password reset
+    user.failedLoginAttempts = 0;
+    user.lockoutTime = null;
+
 
     // user.passwordChangedAt = Date.now()  ==> rather than doing the update here we did it in a pre save hook
 
