@@ -1,12 +1,14 @@
 const { promisify } = require('util')
-const User = require('../models/userModel')
-const asyncWrapper = require('../utils/asyncWrapper')
-const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
-const AppError = require('../utils/AppError')
 const sendEmail = require('../utils/email')
+const jwt = require('jsonwebtoken')
+
+const asyncWrapper = require('../utils/asyncWrapper')
+const AppError = require('../utils/AppError')
+const User = require('../models/userModel')
 
 // TODO: TRY TO IMPLEMENT EMAIL CONFIRMATION UPON USER SIGN UP TO CONFIRM THEIR EMAIL
+// TODO: WHEN DEPLOYING TRY REMOVING THE TOKEN FROM RESPONSE IN SENDTOKEN FUNCTION , IT DID NOT WORK FOR POSTMAN 💀
 
 // generate the token
 const generateToken = (id) => {
@@ -23,26 +25,30 @@ const generateToken = (id) => {
 Cookies have an additional layer of protection because they can be set with the HttpOnly flag, making them inaccessible to JavaScript. This reduces the risk of an attacker stealing the token using malicious scripts injected into the web page.
 */
 const sendToken = (user, statusCode, res) => {
+    // Generate a JWT token using the user's ID
+    const token = generateToken(user._id);
 
-    const token = generateToken(user._id)
-
+    // Configure options for the JWT cookie
     const cookieOptions = {
-        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000), // converting days to mili seconds
-        httpOnly: true
-    }
+        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000), // Setting the expiration date for the cookie
+        httpOnly: true, // Ensures that the cookie is only accessible through HTTP(S) requests and not client-side scripts
+    };
 
+    // Set the 'secure' option for the cookie in a production environment
     if (process.env.NODE_ENV === 'production') {
-        cookieOptions.secure = true
+        cookieOptions.secure = true;
     }
-    // attach the cookie to the response object
-    res.cookie('jwtCookie', token, cookieOptions)
 
+    // Attach the JWT cookie to the response object
+    res.cookie('jwtCookie', token, cookieOptions);
 
+    // Send a JSON response to the client with status, success message, and user data
     res.status(statusCode).json({
-        status: "success",
-        data: user
-    })
-}
+        status: 'success',
+        data: user,
+        token: token
+    });
+};
 
 
 // user sign up
