@@ -40,16 +40,16 @@ const getOneUser = asyncWrapper(async (req, res, next) => {
     })
 })
 
-const deleteUser = asyncWrapper(async (req, res, next) => {
+// const deleteUser = asyncWrapper(async (req, res, next) => {
 
-    const user = await User.findByIdAndDelete(req.params.id)
+//     const user = await User.findByIdAndDelete(req.params.id)
 
-    if (!user) {
-        return next(new AppError('Requested user not found', 404))
-    }
+//     if (!user) {
+//         return next(new AppError('Requested user not found', 404))
+//     }
 
-    res.status(204).send()
-})
+//     res.status(204).send()
+// })
 
 
 const updateMe = asyncWrapper(async (req, res, next) => {
@@ -74,6 +74,25 @@ const updateMe = asyncWrapper(async (req, res, next) => {
 })
 
 
+// this will set user's status from active to false
+const deleteMe = async (req, res, next) => {
+
+    const user = await User.findByIdAndUpdate(req.user.id, { active: false })
+
+    if (!user) {
+        return next(new AppError('user not found', 404))
+    }
+
+    res.status(204).json({ status: "success" })
+
+}
+
+
+
+
+
+
+
 
 
 // ! for convenience I made this while dev, will be deleted later
@@ -84,4 +103,4 @@ const deleteAllUsers = asyncWrapper(async (req, res, next) => {
 })
 
 
-module.exports = { getAllUsers, getOneUser, deleteUser, deleteAllUsers, updateMe }
+module.exports = { getAllUsers, getOneUser, deleteMe, deleteAllUsers, updateMe }

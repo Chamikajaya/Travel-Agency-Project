@@ -48,7 +48,13 @@ const userSchema = new mongoose.Schema({
     passwordChangedAt: Date, // this field is to get the time when user updated his password. This is useful when implementing "protect" route in auth controller
 
     passwordResetToken: String,
-    passwordResetTokenExpires: Date
+    passwordResetTokenExpires: Date,
+
+    active: {  // to support soft deletion 
+        type: Boolean,
+        default: true,
+        select: false
+    }
 
 })
 
@@ -77,6 +83,16 @@ userSchema.pre('save', function (next) {
     next()
 
 })
+
+// query middleware to select only the active users from the DB for any "find" methods
+userSchema.pre(/^find/, function (next) {
+    // this refers to the current query object
+    this.find({ active: { $ne: false } })
+
+    next()
+
+})
+
 
 // "instance method" to check whether passwords matched upon login  => call this method using an instance not the model itself ⭐
 userSchema.methods.checkPassword = async function (realPass, enteredPass) {

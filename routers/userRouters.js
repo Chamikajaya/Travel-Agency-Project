@@ -2,7 +2,7 @@ const express = require('express')
 const { getAllUsers,
     getOneUser,
     updateMe,
-    deleteUser,
+    deleteMe,
     deleteAllUsers
 } = require('../controllers/userController.js')
 const { signup, login, forgotPassword, resetPassword, updatePassword, protect } = require('../controllers/authController.js')
@@ -18,11 +18,12 @@ router.post('/forgotPassword', forgotPassword)
 router.patch('/resetPassword/:token', resetPassword)
 
 router.patch('/updateMe', protect, updateMe)
+router.delete('/deleteMe', protect, deleteMe)
 
 
 router.route('/').get(getAllUsers).delete(deleteAllUsers)
 
-router.route('/:id').get(getOneUser).delete(deleteUser)
+router.route('/:id').get(getOneUser)
 
 
 
