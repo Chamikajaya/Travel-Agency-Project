@@ -6,7 +6,9 @@ const crypto = require('crypto')
 const AppError = require('../utils/AppError')
 const sendEmail = require('../utils/email')
 
+// TODO: TRY TO IMPLEMENT EMAIL CONFIRMATION UPON USER SIGN UP TO CONFIRM THEIR EMAIL
 
+// generate the token
 const generateToken = (id) => {
     // sign the user a token upon sign up -> payload | secret | exp time
     const token = jwt.sign({ id: id }, process.env.JWT_SECRET, {
@@ -16,23 +18,42 @@ const generateToken = (id) => {
     return token;
 }
 
+// send the token as a cookie -->  
+/*
+Cookies have an additional layer of protection because they can be set with the HttpOnly flag, making them inaccessible to JavaScript. This reduces the risk of an attacker stealing the token using malicious scripts injected into the web page.
+*/
+const sendToken = (user, statusCode, res) => {
+
+    const token = generateToken(user._id)
+
+    const cookieOptions = {
+        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000), // converting days to mili seconds
+        httpOnly: true
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+        cookieOptions.secure = true
+    }
+    // attach the cookie to the response object
+    res.cookie('jwtCookie', token, cookieOptions)
+
+
+    res.status(statusCode).json({
+        status: "success",
+        data: user
+    })
+}
+
+
 // user sign up
 const signup = asyncWrapper(async (req, res, next) => {
 
     // for security reasons do not directly accept req.body, instead do it like below
-    const { name, email, password, passwordConfirm, role, passwordChangedAt } = req.body  // ! remove the last prop later (passwordChangedAt), once update user route is implemented
-    const user = await User.create({ name, email, password, passwordConfirm, role, passwordChangedAt })          // ! remove the last prop later, once update user route is implemented
+    const { name, email, password, passwordConfirm, role } = req.body
+    const user = await User.create({ name, email, password, passwordConfirm, role })
 
 
-    const token = generateToken(user._id)
-
-    res.status(201).json({
-        status: "Successful",
-        message: "User signup is successful",
-        token: token,  // send the token to the user  
-        newUser: user
-
-    })
+    sendToken(user, 201, res)
 
 })
 
@@ -80,19 +101,16 @@ const login = asyncWrapper(async (req, res, next) => {
 
     // * 3) if above conditions are met send the token
 
-    const token = generateToken(user._id)
 
     // also reset failedLoginAttempts and lockoutTime
     user.failedLoginAttempts = 0;
     user.lockoutTime = null;
     await user.save({ validateBeforeSave: false });
 
+    sendToken(user, 200, res)
 
-    res.status(200).json({
-        status: "Successful",
-        message: "User login is successful",
-        token: token,  // send the token to the user
-    })
+
+
 
 })
 
@@ -235,12 +253,9 @@ const resetPassword = asyncWrapper(async (req, res, next) => {
 
 
     // 4) log the user in and send the JWT
-    const jwtToken = generateToken(user._id)
+    sendToken(user, 200, res)
 
-    res.status(200).json({
-        status: "successful",
-        jwtToken: jwtToken
-    })
+
 })
 
 
@@ -269,12 +284,7 @@ const updatePassword = asyncWrapper(async (req, res, next) => {
     await user.save() // * if we do the password update using User.findByIDAndUpdate() then the validators + pre save hooks would not have worked
 
     // 4) log the user in and send the JWT
-    const jwtToken = generateToken(user._id)
-
-    res.status(200).json({
-        status: "successful",
-        jwtToken: jwtToken
-    })
+    sendToken(user, 200, res)
 })
 
 
