@@ -63,6 +63,11 @@ const userSchema = new mongoose.Schema({
 
     lockoutTime: Date  // gives the time until the account becomes free to login again after blocking
 
+
+
+
+
+
 })
 
 // query middleware to select only the active users from the DB for any "find" methods

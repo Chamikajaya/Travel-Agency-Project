@@ -119,7 +119,43 @@ const tourSchema = new mongoose.Schema({
         type: Boolean,
         default: false
 
-    }
+    },
+
+    // * here we will embed the locations in the tour model itself  because we will not use locations anywhere else in the app 
+
+    startLocation: {
+        // GeoJson ==> a special format for specifying GeoSpatial data (data associated with a real place on earth)
+        type: {
+            type: String,
+            default: 'Point',
+            enum: ['Point']  // only one value is allowed
+        },
+        coordinates: [Number],  // array of numbers
+        address: String,
+        description: String
+    },
+    // ** locations => Embedded documents  😊
+    locations: [
+        {
+            type: {
+                type: String,
+                default: 'Point',
+                enum: ['Point']  // only one value is allowed
+            },
+            coordinates: [Number],  // array of numbers
+            address: String,
+            description: String,
+            day: Number  // day of the tour
+        }
+    ],
+
+    // array of user ids
+    guides: [
+        {
+            type: mongoose.Schema.ObjectId,
+            ref: 'User'  // reference to the UserModel
+        }]
+
 
 
 },
@@ -164,7 +200,7 @@ tourSchema.pre('save', function (next) {  // * before saving data to the databas
 // ****  refer the commented code for more about Document type Mongoose hooks  **** \\
 
 /*
-// if we want we can have more than one hooks
+/if we want we can have more than one hooks
 tourSchema.pre('save', function (next) {
 
     console.log(this.name + ' is being saved. Please wait...')
@@ -197,7 +233,17 @@ tourSchema.pre(/^find/, function (next) {  // ! do not use ' ' with regEx
 
 })
 
+// this query middleware will populate the guides field with the actual user data (not just the id) when we query for a tour ⭐
+tourSchema.pre(/^find/, function (next) {
 
+    this.populate({
+        path: 'guides',
+        select: '-__v -passwordChangedAt -lockoutTime -failedLoginAttempts'  // exclude these fields from the response
+    })
+
+    next()
+
+})
 // 3) Aggregation Middleware
 
 // if we do not do this in our aggregate routes we will get those secret tours

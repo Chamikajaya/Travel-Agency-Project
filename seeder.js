@@ -5,7 +5,7 @@ dotenv.config({ path: './config.env' });
 const TourModel = require('./models/tourModel');
 
 // JSON.parse is needed to convert the json to array
-const devData = JSON.parse(fs.readFileSync('./dev-data/data/tours-simple.json', 'utf-8'))
+const devData = JSON.parse(fs.readFileSync('./dev-data/data/tours.json', 'utf-8'))
 
 mongoose.connect(process.env.DB_STRING)
     .then(() => console.log('DB connection successful!'))
