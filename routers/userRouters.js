@@ -3,7 +3,8 @@ const { getAllUsers,
     getOneUser,
     updateMe,
     deleteMe,
-    deleteUser
+    deleteUser,
+    updateUser
 } = require('../controllers/userController.js')
 const { signup, login, forgotPassword, resetPassword, updatePassword, protect } = require('../controllers/authController.js')
 
@@ -26,6 +27,7 @@ router.route('/').get(getAllUsers)
 router.route('/:id')
     .get(getOneUser)
     .delete(deleteUser)
+    .patch(updateUser)
 
 
 

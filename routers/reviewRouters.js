@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAllReviews, createReview, deleteReview } = require('../controllers/reviewsController');
+const { getAllReviews, createReview, deleteReview, updateReview } = require('../controllers/reviewsController');
 const { protect, restrictTo } = require('../controllers/authController');
 
 
@@ -16,5 +16,6 @@ router.route('/')
 
 router.route('/:id')
     .delete(deleteReview)
+    .patch(updateReview)
 
 module.exports = router

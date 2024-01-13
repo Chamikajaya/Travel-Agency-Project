@@ -4,7 +4,7 @@ const sendEmail = require('../utils/email')
 const jwt = require('jsonwebtoken')
 
 const asyncWrapper = require('../utils/asyncWrapper')
-const AppError = require('../utils/AppError')
+const AppError = require('../utils/appError')
 const User = require('../models/userModel')
 
 // TODO: TRY TO IMPLEMENT EMAIL CONFIRMATION UPON USER SIGN UP TO CONFIRM THEIR EMAIL

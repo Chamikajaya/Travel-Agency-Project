@@ -3,7 +3,7 @@ const APIFeatures = require('../utils/APIFeatures')
 
 const AppError = require('../utils/appError')
 const asyncWrapper = require('../utils/asyncWrapper')
-const deleteSingleDoc = require('../controllers/handlerFactory')
+const { deleteSingleDoc, updateSingleDoc } = require('../controllers/handlerFactory')
 
 
 // @desc --> create a tour
@@ -68,26 +68,7 @@ const getOneTour = asyncWrapper(async (req, res, next) => {
 
 // @desc --> Update a tour
 // PATCH /api/v1/tours/:id
-const updateTour = asyncWrapper(async (req, res) => {
-
-    // findByIdAndUpdate --> refer mongoose docs
-    const updatedTour = await TourModel.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { returnDocument: 'after', runValidators: true }
-    )
-
-    if (!updatedTour) {
-        return next(new AppError('Requested tour not found', 404))
-    }
-    res.status(200)
-        .json({
-            status: "successfully updated",
-            updatedTour: updatedTour
-
-        })
-
-})
+const updateTour = updateSingleDoc(TourModel)
 
 
 // @desc --> delete a tour 

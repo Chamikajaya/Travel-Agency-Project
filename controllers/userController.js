@@ -1,6 +1,6 @@
 const User = require('../models/userModel')
 const asyncWrapper = require('../utils/asyncWrapper')
-const deleteSingleDoc = require('../controllers/handlerFactory')
+const { deleteSingleDoc, updateSingleDoc } = require('../controllers/handlerFactory')
 const AppError = require('../utils/appError')
 
 
@@ -44,6 +44,7 @@ const getOneUser = asyncWrapper(async (req, res, next) => {
 
 const deleteUser = deleteSingleDoc(User)
 
+const updateUser = updateSingleDoc(User) // for admins only + no password update via this route 🤩 
 
 const updateMe = asyncWrapper(async (req, res, next) => {
 
@@ -81,4 +82,4 @@ const deleteMe = async (req, res, next) => {
 }
 
 
-module.exports = { getAllUsers, getOneUser, deleteMe, updateMe, deleteUser }
+module.exports = { getAllUsers, getOneUser, deleteMe, updateMe, deleteUser, updateUser }

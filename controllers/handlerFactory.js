@@ -15,9 +15,28 @@ const deleteSingleDoc = (Model) => asyncWrapper(async (req, res, next) => {
 })
 
 
+const updateSingleDoc = (Model) => asyncWrapper(async (req, res, next) => {
+    // findByIdAndUpdate --> refer mongoose docs
+
+    //  ! when we use findByIdAndUpdate, the pre save hooks we implemented will not work.
+
+    const doc = await Model.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { returnDocument: 'after', runValidators: true }
+    )
+
+    if (!doc) {
+        return next(new AppError('Requested document not found', 404))
+    }
+    res.status(200)
+        .json({
+            status: "successfully updated",
+            updatedDoc: doc
+
+        })
+
+});
 
 
-
-
-
-module.exports = deleteSingleDoc;
+module.exports = { deleteSingleDoc, updateSingleDoc };
