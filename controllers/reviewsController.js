@@ -19,7 +19,7 @@ const createReview = asyncWrapper(async (req, res) => {
     // due to the following code, we can create a review without specifying the tour id and user id in the body of the request 😊 
 
 
-    // if the tour id is not in the body, then we will get it from the url params (nested route in tourController.js)
+    // if the tour id is not in the body, then we will get it from the url params (nested route in tourRouter.js + reviewRouter.js)
     if (!req.body.tour) {
         req.body.tour = req.params.tourId
     }

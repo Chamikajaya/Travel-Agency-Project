@@ -11,10 +11,17 @@ const {
 } = require("../controllers/tourController")
 
 const { protect, restrictTo } = require('../controllers/authController')
-const { createReview } = require('../controllers/reviewsController')
 
+const reviewRouter = require('./reviewRouters')
 
 const router = express.Router()
+
+
+// * nested routes
+
+// POST /tour/:tourId/reviews 
+
+router.use('/:tourId/reviews', reviewRouter)  // use reviewRouter if this pattern /:tourId/reviews  is matched in the url (redirect to reviewRouter.js)
 
 
 // *  defining a middleware function that will be invoked when a route parameter named 'id' is present in the URL. This kind of middleware function can be useful for validation, logging, or loading additional data related to the route parameter.
@@ -44,15 +51,6 @@ router.route('/:id')
     .get(getOneTour)
     .patch(updateTour)
     .delete(protect, restrictTo('admin', 'lead-guide'), deleteTour)
-
-
-
-// * nested routes
-
-// POST /tour/:tourId/reviews  
-router.route('/:tourId/reviews')
-    .post(protect, restrictTo('user'), createReview)
-
 
 
 
