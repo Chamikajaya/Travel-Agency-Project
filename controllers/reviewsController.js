@@ -4,7 +4,16 @@ const asyncWrapper = require('../utils/asyncWrapper')
 
 const getAllReviews = asyncWrapper(async (req, res) => {
 
-    const allReviews = await Review.find()
+
+    // if the tour id is not in the url params (nested route) we will get the tour id from the body of the request so that we can get all the reviews for that particular tour, otherwise we will get all the reviews for all the tours 
+
+    let filter = {}
+
+    if (req.params.tourId) {
+        filter = { tour: req.params.tourId }
+    }
+
+    const allReviews = await Review.find(filter)
 
     res.status(200).json({
         status: "successful",

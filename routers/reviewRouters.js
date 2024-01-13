@@ -7,6 +7,7 @@ const router = express.Router({ mergeParams: true });  // mergeParams: true is n
 
 
 // POST /tour/:tourId/reviews (nested route ⭐)
+// GET /tour/:tourId/reviews (nested route ⭐)  (get all the reviews for a particular tour)
 // POST /reviews
 // GET /reviews 
 router.route('/')
