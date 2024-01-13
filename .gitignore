@@ -1,2 +1,9 @@
-/node_modules
-.env
+# Ignore files containing environment variables.
+**/*.env
+
+# Ignore IDE-specific files & folders.
+**/.idea/
+**/.vscode/
+
+# Ignore node modules.
+**/node_modules/
