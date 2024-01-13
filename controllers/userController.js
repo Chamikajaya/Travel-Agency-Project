@@ -1,6 +1,8 @@
 const User = require('../models/userModel')
 const asyncWrapper = require('../utils/asyncWrapper')
-const AppError = require('../utils/AppError')
+const deleteSingleDoc = require('../controllers/handlerFactory')
+const AppError = require('../utils/appError')
+
 
 // function to get the filtered object when user updates data
 const getFilteredBodyObj = (bodyObj, ...updatableFields) => {  // as second parameter to this function we used spread operator, this way we can entry as many args and they will be placed inside an array
@@ -40,16 +42,7 @@ const getOneUser = asyncWrapper(async (req, res, next) => {
     })
 })
 
-// const deleteUser = asyncWrapper(async (req, res, next) => {
-
-//     const user = await User.findByIdAndDelete(req.params.id)
-
-//     if (!user) {
-//         return next(new AppError('Requested user not found', 404))
-//     }
-
-//     res.status(204).send()
-// })
+const deleteUser = deleteSingleDoc(User)
 
 
 const updateMe = asyncWrapper(async (req, res, next) => {
@@ -88,19 +81,4 @@ const deleteMe = async (req, res, next) => {
 }
 
 
-
-
-
-
-
-
-
-// ! for convenience I made this while dev, will be deleted later
-const deleteAllUsers = asyncWrapper(async (req, res, next) => {
-    await User.deleteMany()
-
-    res.status(204).send()
-})
-
-
-module.exports = { getAllUsers, getOneUser, deleteMe, deleteAllUsers, updateMe }
+module.exports = { getAllUsers, getOneUser, deleteMe, updateMe, deleteUser }

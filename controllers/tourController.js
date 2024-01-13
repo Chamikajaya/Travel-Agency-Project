@@ -1,9 +1,9 @@
 const TourModel = require('../models/tourModel')
 const APIFeatures = require('../utils/APIFeatures')
 
-const AppError = require('../utils/AppError')
-
+const AppError = require('../utils/appError')
 const asyncWrapper = require('../utils/asyncWrapper')
+const deleteSingleDoc = require('../controllers/handlerFactory')
 
 
 // @desc --> create a tour
@@ -92,16 +92,7 @@ const updateTour = asyncWrapper(async (req, res) => {
 
 // @desc --> delete a tour 
 // DELETE /api/v1/tours/:id
-const deleteTour = asyncWrapper(async (req, res) => {
-
-    const tour = await TourModel.findByIdAndDelete(req.params.id)
-
-    if (!tour) {
-        return next(new AppError('Requested tour not found', 404))
-    }
-
-    res.status(204).json({ status: "successful deletion" })
-})
+const deleteTour = deleteSingleDoc(TourModel)
 
 
 

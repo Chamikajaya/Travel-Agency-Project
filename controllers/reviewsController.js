@@ -1,6 +1,8 @@
 const Review = require('../models/reviewModel');
-const AppError = require('../utils/AppError')
+// const AppError = require('../utils/appError')
 const asyncWrapper = require('../utils/asyncWrapper')
+const deleteSingleDoc = require('../controllers/handlerFactory')
+
 
 const getAllReviews = asyncWrapper(async (req, res) => {
 
@@ -47,5 +49,7 @@ const createReview = asyncWrapper(async (req, res) => {
     })
 })
 
+const deleteReview = deleteSingleDoc(Review)
 
-module.exports = { getAllReviews, createReview }
+
+module.exports = { getAllReviews, createReview, deleteReview }
