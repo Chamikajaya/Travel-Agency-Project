@@ -135,6 +135,11 @@ const getToursStats = asyncWrapper(async (req, res) => {
         })
 })
 
+
+
+
+
+
 // @desc --> Get how many tours starting on each month and what they are
 const getMonthlyPlan = asyncWrapper(async (req, res) => {
 

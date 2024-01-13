@@ -11,7 +11,7 @@ const {
 } = require("../controllers/tourController")
 
 const { protect, restrictTo } = require('../controllers/authController')
-
+const { createReview } = require('../controllers/reviewsController')
 
 
 const router = express.Router()
@@ -44,6 +44,17 @@ router.route('/:id')
     .get(getOneTour)
     .patch(updateTour)
     .delete(protect, restrictTo('admin', 'lead-guide'), deleteTour)
+
+
+
+// * nested routes
+
+// POST /tour/:tourId/reviews  
+router.route('/:tourId/reviews')
+    .post(protect, restrictTo('user'), createReview)
+
+
+
 
 
 module.exports = router

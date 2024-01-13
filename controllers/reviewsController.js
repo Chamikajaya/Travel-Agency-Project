@@ -15,6 +15,21 @@ const getAllReviews = asyncWrapper(async (req, res) => {
 
 const createReview = asyncWrapper(async (req, res) => {
 
+
+    // due to the following code, we can create a review without specifying the tour id and user id in the body of the request 😊 
+
+
+    // if the tour id is not in the body, then we will get it from the url params (nested route in tourController.js)
+    if (!req.body.tour) {
+        req.body.tour = req.params.tourId
+    }
+
+    // we will call the protect middleware before this controller, so we will have access to req.user.id 
+    if (!req.body.user) {
+        req.body.user = req.user.id
+
+    }
+
     const newReview = await Review.create(req.body)
 
     res.status(201).json({
