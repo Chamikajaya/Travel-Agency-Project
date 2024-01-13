@@ -45,18 +45,25 @@ const reviewSchema = new mongoose.Schema({
 // query middleware to populate the tour and user fields
 reviewSchema.pre(/^find/, function (next) {
 
+
     this.populate({
         path: 'user',
         select: 'name photo'  // select these fields only (no need to display the private fields like email, ...)
     })
-        .populate({
+
+
+    //! decided not to populate the tour field , if we had populate the tour field, when we query for a tour (in get a single tour) then that response would have the reviews field populated + that particular review's tour populated too , kind of like a chain which slows down the response time . So  decided only to populate the user field here.  
+    /*.populate({
             path: 'tour',
             select: 'name'
         })
+        */
 
     next()
 
 })
+
+
 
 
 

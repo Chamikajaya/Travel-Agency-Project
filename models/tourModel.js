@@ -178,6 +178,17 @@ tourSchema.virtual('formattedDuration').get(function () {
 })
 
 
+// * virtual populate ==>  to populate the reviews field with the actual review data (not just the id) when we query for a tour ⭐
+
+// also there is no need to get the reviews populated when we query all the tours, it is enough to populate the reviews when we query for a single tour. So here did not use a query middleware, instead used "populate()" in get a single tour router
+
+
+tourSchema.virtual('reviews', {
+    ref: 'Review',  // the model to reference
+    foreignField: 'tour',  // the field in the Review model which stores the tour id
+    localField: '_id'  // the field in the Tour model which stores the tour id
+})
+
 
 // refer Mongoose docs 
 // * Mongoose Middleware (also called pre and post hooks) ==> 

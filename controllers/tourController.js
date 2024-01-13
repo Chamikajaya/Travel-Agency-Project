@@ -49,7 +49,7 @@ const getAllTours = asyncWrapper(async (req, res) => {
 // GET /api/v1/tours/:id
 const getOneTour = asyncWrapper(async (req, res, next) => {
 
-    const askedTour = await TourModel.findById(req.params.id)  // to access the parameters use req.params not req.body 😊
+    const askedTour = await TourModel.findById(req.params.id).populate('reviews')  // to access the parameters use req.params not req.body 😊
 
 
     // when user gives proper id, but a tour corresponding to that id does not exist (this is not CAST ERROR)

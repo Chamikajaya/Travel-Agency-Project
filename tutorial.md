@@ -58,3 +58,5 @@
   - Populate the reference - using a query middleware
     ![Alt text](image-3.png)
     ![Alt text](image-4.png)
+
+##### \* In the reviews schema we used parent referencing to both tours and users. But when we query a tour we need to get the related reviews. So here to achieve this we used <span style="color: red"> virtual populate </span> .(we could have used child referencing also but then the reviews array would have been very large) - Refer tourModel.js
