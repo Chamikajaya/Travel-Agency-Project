@@ -12,6 +12,7 @@ const AppError = require('./utils/AppError')
 
 const tourRouter = require('./routers/tourRouters')
 const userRouter = require('./routers/userRouters')
+const reviewRouter = require('./routers/reviewRouters')
 
 const app = express();
 
@@ -67,6 +68,7 @@ if (process.env.NODE_ENV === 'development')
 // mounting routers
 app.use('/api/v1/tours', tourRouter)
 app.use('/api/v1/users', userRouter)
+app.use('/api/v1/reviews', reviewRouter)
 
 // handle non-existing routes
 app.use('*', (req, res, next) => {
