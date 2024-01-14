@@ -4,7 +4,8 @@ const { getAllUsers,
     updateMe,
     deleteMe,
     deleteUser,
-    updateUser
+    updateUser,
+    getMe
 } = require('../controllers/userController.js')
 const { signup, login, forgotPassword, resetPassword, updatePassword, protect } = require('../controllers/authController.js')
 
@@ -18,6 +19,7 @@ router.patch('/updatePassword', protect, updatePassword)  // since only the logg
 router.post('/forgotPassword', forgotPassword)
 router.patch('/resetPassword/:token', resetPassword)
 
+router.get('/me', protect, getMe, getOneUser)
 router.patch('/updateMe', protect, updateMe)
 router.delete('/deleteMe', protect, deleteMe)
 

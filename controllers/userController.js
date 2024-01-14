@@ -23,6 +23,16 @@ const deleteUser = deleteSingleDoc(User)
 
 const updateUser = updateSingleDoc(User) // for admins only + no password update via this route 🤩 
 
+// the currently logged in user will be able to access profile info using this
+const getMe = (req, res, next) => {
+
+    // we use protect middleware before this, it will add the user object to the request, so using it we can set req.params.id as follows
+
+    req.params.id = req.user.id  // * so that we can use getOneUser next (refer userRoute.js for the use case => '/me' route)
+
+    next()
+}
+
 const updateMe = asyncWrapper(async (req, res, next) => {
 
     // we will not let the user update his password via this route
@@ -44,7 +54,6 @@ const updateMe = asyncWrapper(async (req, res, next) => {
     })
 })
 
-
 // this will set user's status from active to false
 const deleteMe = async (req, res, next) => {
 
@@ -59,4 +68,4 @@ const deleteMe = async (req, res, next) => {
 }
 
 
-module.exports = { getAllUsers, getOneUser, deleteMe, updateMe, deleteUser, updateUser }
+module.exports = { getAllUsers, getOneUser, deleteMe, updateMe, deleteUser, updateUser, getMe }

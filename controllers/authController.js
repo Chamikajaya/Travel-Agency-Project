@@ -7,9 +7,6 @@ const asyncWrapper = require('../utils/asyncWrapper')
 const AppError = require('../utils/appError')
 const User = require('../models/userModel')
 
-// TODO: TRY TO IMPLEMENT EMAIL CONFIRMATION UPON USER SIGN UP TO CONFIRM THEIR EMAIL
-// TODO: WHEN DEPLOYING TRY REMOVING THE TOKEN FROM RESPONSE IN SENDTOKEN FUNCTION , IT DID NOT WORK FOR POSTMAN 💀
-
 // generate the token
 const generateToken = (id) => {
     // sign the user a token upon sign up -> payload | secret | exp time
