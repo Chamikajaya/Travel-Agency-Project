@@ -39,17 +39,17 @@ router.route('/tour-stats')
     .get(getToursStats)
 
 router.route('/monthly-plan/:year')
-    .get(getMonthlyPlan)
+    .post(protect, restrictTo('admin', 'lead-guide', 'guide'), getMonthlyPlan)
 
 
 router.route('/')
     .get(protect, getAllTours)
-    .post(createTour)
+    .post(protect, restrictTo('admin', 'lead-guide'), createTour)
 
 
 router.route('/:id')
     .get(getOneTour)
-    .patch(updateTour)
+    .post(protect, restrictTo('admin', 'lead-guide'), updateTour)
     .delete(protect, restrictTo('admin', 'lead-guide'), deleteTour)
 
 
