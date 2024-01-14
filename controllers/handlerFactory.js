@@ -1,6 +1,8 @@
 const asyncWrapper = require('../utils/asyncWrapper')
 const AppError = require('../utils/appError');
 
+
+
 const deleteSingleDoc = (Model) => asyncWrapper(async (req, res, next) => {
     const doc = await Model.findByIdAndDelete(req.params.id);
 
@@ -39,4 +41,17 @@ const updateSingleDoc = (Model) => asyncWrapper(async (req, res, next) => {
 });
 
 
-module.exports = { deleteSingleDoc, updateSingleDoc };
+
+const createSingleDoc = (Model) => asyncWrapper(async (req, res, next) => {
+    // here create method returns a promise so we can use async await to handle it
+    const doc = await Model.create(req.body)
+
+    res.status(201)
+        .json({
+            status: "Successful",
+            data: doc
+        })
+})
+
+
+module.exports = { deleteSingleDoc, updateSingleDoc, createSingleDoc };

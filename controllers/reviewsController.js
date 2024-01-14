@@ -1,7 +1,7 @@
 const Review = require('../models/reviewModel');
 // const AppError = require('../utils/appError')
 const asyncWrapper = require('../utils/asyncWrapper')
-const { deleteSingleDoc, updateSingleDoc, } = require('../controllers/handlerFactory')
+const { deleteSingleDoc, updateSingleDoc, createSingleDoc } = require('../controllers/handlerFactory')
 
 
 const getAllReviews = asyncWrapper(async (req, res) => {
@@ -24,10 +24,10 @@ const getAllReviews = asyncWrapper(async (req, res) => {
     })
 })
 
-const createReview = asyncWrapper(async (req, res) => {
+// middleware function 👉
+// due to the following code, we can create a review without specifying the tour id and user id in the body of the request 😊 
 
-
-    // due to the following code, we can create a review without specifying the tour id and user id in the body of the request 😊 
+const setTourIdAndUserID = (req, res, next) => {
 
 
     // if the tour id is not in the body, then we will get it from the url params (nested route in tourRouter.js + reviewRouter.js)
@@ -41,17 +41,15 @@ const createReview = asyncWrapper(async (req, res) => {
 
     }
 
-    const newReview = await Review.create(req.body)
+    next()
+}
 
-    res.status(201).json({
-        status: "successful",
-        newReview: newReview
-    })
-})
+
+const createReview = createSingleDoc(Review)
 
 const deleteReview = deleteSingleDoc(Review)
 
 const updateReview = updateSingleDoc(Review)
 
 
-module.exports = { getAllReviews, createReview, deleteReview, updateReview }
+module.exports = { getAllReviews, createReview, deleteReview, updateReview, setTourIdAndUserID }

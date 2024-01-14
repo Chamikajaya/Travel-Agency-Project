@@ -3,23 +3,12 @@ const APIFeatures = require('../utils/APIFeatures')
 
 const AppError = require('../utils/appError')
 const asyncWrapper = require('../utils/asyncWrapper')
-const { deleteSingleDoc, updateSingleDoc } = require('../controllers/handlerFactory')
+const { deleteSingleDoc, updateSingleDoc, createSingleDoc } = require('../controllers/handlerFactory')
 
 
 // @desc --> create a tour
 // POST / api / v1 / tours
-const createTour = asyncWrapper(async (req, res) => {
-
-    // here create method returns a promise so we can use async await to handle it
-    const newTour = await TourModel.create(req.body)
-
-    res.status(201)
-        .json({
-            status: "Successful",
-            message: "Tour created successfully"
-        })
-
-})
+const createTour = createSingleDoc(TourModel)
 
 
 // @desc --> Get all tours 
