@@ -1,9 +1,7 @@
 const TourModel = require('../models/tourModel')
-const APIFeatures = require('../utils/APIFeatures')
 
-const AppError = require('../utils/appError')
 const asyncWrapper = require('../utils/asyncWrapper')
-const { deleteSingleDoc, updateSingleDoc, createSingleDoc } = require('../controllers/handlerFactory')
+const { deleteSingleDoc, updateSingleDoc, createSingleDoc, getSingleDoc, getAllDocs } = require('../controllers/handlerFactory')
 
 
 // @desc --> create a tour
@@ -13,46 +11,11 @@ const createTour = createSingleDoc(TourModel)
 
 // @desc --> Get all tours 
 // GET /api/v1/tours
-const getAllTours = asyncWrapper(async (req, res) => {
-
-    // creating an instance & chaining the methods
-    const features = new APIFeatures(TourModel.find(), req.query)
-        .filter()
-        .sort()
-        .limitFields()
-        .paginate()
-
-
-    const tours = await features.query
-
-    res.status(200)
-        .json({
-            status: "successful",
-            totalTours: tours.length,
-            allTours: tours
-        })
-}
-)
+const getAllTours = getAllDocs(TourModel)
 
 // @desc --> Get one tour
 // GET /api/v1/tours/:id
-const getOneTour = asyncWrapper(async (req, res, next) => {
-
-    const askedTour = await TourModel.findById(req.params.id).populate('reviews')  // to access the parameters use req.params not req.body 😊
-
-
-    // when user gives proper id, but a tour corresponding to that id does not exist (this is not CAST ERROR)
-    if (!askedTour) {
-        return next(new AppError('Requested tour not found', 404))
-    }
-
-    res.status(200)
-        .json({
-            status: "successful",
-            tour: askedTour
-        })
-
-})
+const getOneTour = getSingleDoc(TourModel, { path: 'reviews' })
 
 
 // @desc --> Update a tour
@@ -95,10 +58,6 @@ const getToursStats = asyncWrapper(async (req, res) => {
             stat: stats
         })
 })
-
-
-
-
 
 
 // @desc --> Get how many tours starting on each month and what they are

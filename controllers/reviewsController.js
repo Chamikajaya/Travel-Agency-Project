@@ -1,13 +1,17 @@
 const Review = require('../models/reviewModel');
-// const AppError = require('../utils/appError')
-const asyncWrapper = require('../utils/asyncWrapper')
-const { deleteSingleDoc, updateSingleDoc, createSingleDoc } = require('../controllers/handlerFactory')
+
+const {
+    deleteSingleDoc,
+    updateSingleDoc,
+    createSingleDoc,
+    getSingleDoc,
+    getAllDocs } = require('../controllers/handlerFactory')
 
 
-const getAllReviews = asyncWrapper(async (req, res) => {
+// middleware function 👉
+// if the tour id is  in the url params (for a nested route) we will get the tour id from the url  of the request so that we can get all the reviews for that particular tour, otherwise we will get all the reviews for all the tours   (REFER reviewsRouter.js to see this use case )
+const setTourId = (req, res, next) => {
 
-
-    // if the tour id is not in the url params (nested route) we will get the tour id from the body of the request so that we can get all the reviews for that particular tour, otherwise we will get all the reviews for all the tours 
 
     let filter = {}
 
@@ -15,18 +19,15 @@ const getAllReviews = asyncWrapper(async (req, res) => {
         filter = { tour: req.params.tourId }
     }
 
-    const allReviews = await Review.find(filter)
+    next()
 
-    res.status(200).json({
-        status: "successful",
-        totalReviews: allReviews.length,
-        allReviews: allReviews
-    })
-})
+}
+
+const getAllReviews = getAllDocs(Review)
+
 
 // middleware function 👉
-// due to the following code, we can create a review without specifying the tour id and user id in the body of the request 😊 
-
+// due to the following code, we can create a review without specifying the tour id and user id in the body of the request 😊  REFER reviewsRouter.js to see this use case 
 const setTourIdAndUserID = (req, res, next) => {
 
 
@@ -51,5 +52,6 @@ const deleteReview = deleteSingleDoc(Review)
 
 const updateReview = updateSingleDoc(Review)
 
+const getSingleReview = getSingleDoc(Review)
 
-module.exports = { getAllReviews, createReview, deleteReview, updateReview, setTourIdAndUserID }
+module.exports = { getAllReviews, createReview, deleteReview, updateReview, setTourIdAndUserID, getSingleReview, setTourId }
